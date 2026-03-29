@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
 const geminiApiKey = process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
 const visionApiKey = process.env.GOOGLE_API_KEY;
 
-// ❌ Fail fast if missing
+// ❌ Warn if missing
 if (!geminiApiKey) {
   console.warn("⚠️ GEMINI API KEY missing");
 }
@@ -17,21 +17,17 @@ if (!visionApiKey) {
 }
 
 // ✅ Gemini setup
-const ai = new GoogleGenAI({
-  apiKey: geminiApiKey || "",
-});
+const genAI = new GoogleGenerativeAI(geminiApiKey || "");
 
-// ✅ Multer (memory upload)
+// ✅ Multer
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 30 * 1024 * 1024 },
 });
 
-
 // ─────────────────────────────────────────────
 // 🔍 GOOGLE VISION OCR
 // ─────────────────────────────────────────────
-
 async function visionOcrImage(buffer: Buffer): Promise<string> {
   if (!visionApiKey) throw new Error("GOOGLE_API_KEY missing");
 
@@ -62,37 +58,29 @@ async function visionOcrImage(buffer: Buffer): Promise<string> {
   return data?.responses?.[0]?.fullTextAnnotation?.text || "";
 }
 
-
 // ─────────────────────────────────────────────
 // 📄 EXTRACT TEXT
 // ─────────────────────────────────────────────
-
-async function extractText(
-  buffer: Buffer,
-  mimetype: string
-): Promise<string> {
+async function extractText(buffer: Buffer, mimetype: string): Promise<string> {
   if (mimetype.startsWith("image/")) {
     return await visionOcrImage(buffer);
   }
-
-  // fallback for pdf/text
   return buffer.toString("utf-8");
 }
-
 
 // ─────────────────────────────────────────────
 // 🤖 GEMINI PARSE
 // ─────────────────────────────────────────────
-
 async function runGemini(prompt: string) {
-  const response = await ai.models.generateContent({
+  const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
-    contents: prompt,
   });
 
-  return response.text ?? "";
-}
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
 
+  return response.text();
+}
 
 // ─────────────────────────────────────────────
 // 🚀 ROUTES
@@ -102,7 +90,6 @@ async function runGemini(prompt: string) {
 router.get("/", (_req, res) => {
   res.json({ status: "Parse route working ✅" });
 });
-
 
 // ✅ Upload + parse
 router.post("/upload", upload.single("file"), async (req, res) => {
