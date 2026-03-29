@@ -2,14 +2,16 @@ import pkg from "pg";
 
 const { Pool } = pkg;
 
-// ✅ Ensure env exists
-if (!process.env.DATABASE_URL) {
-  throw new Error("❌ DATABASE_URL is missing");
+// ✅ Fix TypeScript env issue
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  throw new Error("❌ DATABASE_URL missing");
 }
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, // required for Railway
+    rejectUnauthorized: false,
   },
 });

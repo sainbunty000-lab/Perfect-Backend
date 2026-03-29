@@ -1,4 +1,9 @@
-import express, { type Express, type Request, type Response, type NextFunction } from "express";
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
@@ -24,7 +29,9 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ STATIC FILES (VERY IMPORTANT for Expo / Railway)
+// ─────────────────────────────────────────────
+// ✅ STATIC FILES (Expo / assets)
+// ─────────────────────────────────────────────
 app.use("/public", express.static(path.resolve(process.cwd(), "public")));
 
 // ─────────────────────────────────────────────
@@ -42,7 +49,7 @@ app.get("/", (_req: Request, res: Response) => {
 app.use("/api", router);
 
 // ─────────────────────────────────────────────
-// ❌ 404 HANDLER
+// ❌ 404 HANDLER (keep AFTER routes)
 // ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
   res.status(404).json({
@@ -52,14 +59,16 @@ app.use((req: Request, res: Response) => {
 });
 
 // ─────────────────────────────────────────────
-// ❌ GLOBAL ERROR HANDLER (IMPROVED)
+// ❌ GLOBAL ERROR HANDLER (FINAL)
 // ─────────────────────────────────────────────
-app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-  req.log?.error({ err }, "Unhandled error");
+app.use(
+  (err: any, req: Request, res: Response, _next: NextFunction) => {
+    req.log?.error({ err }, "Unhandled error");
 
-  res.status(err.status || 500).json({
-    error: err.message || "Internal server error",
-  });
-});
+    res.status(err.status || 500).json({
+      error: err.message || "Internal server error",
+    });
+  }
+);
 
 export default app;

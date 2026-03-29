@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { pool } from "../lib/pool.js";
 
 const router = Router();
@@ -110,7 +110,7 @@ router.put("/:id(\\d+)", async (req, res) => {
 // ─────────────────────────────────────────────
 // ✅ DELETE CASE
 // ─────────────────────────────────────────────
-router.delete("/:id(\\d+)", async (req, res) => {
+router.delete("/:id(\\d+)", async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
