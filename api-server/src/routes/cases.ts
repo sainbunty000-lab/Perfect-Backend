@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Router, Request, Response } from "express";
+=======
+import { Router } from "express";
+>>>>>>> 52d7754 (final fix)
 import { pool } from "../lib/db.js";
 
 const router = Router();
@@ -110,7 +114,11 @@ router.put("/:id(\\d+)", async (req, res) => {
 // ─────────────────────────────────────────────
 // ✅ DELETE CASE
 // ─────────────────────────────────────────────
+<<<<<<< HEAD
 router.delete("/:id(\\d+)", async (req: Request, res: Response) => {
+=======
+router.delete("/:id(\\d+)", async (req, res) => {
+>>>>>>> 52d7754 (final fix)
   try {
     const id = Number(req.params.id);
 
